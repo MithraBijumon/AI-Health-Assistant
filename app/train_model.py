@@ -28,7 +28,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # 2. Load dataset
 # one
-df1 = pd.read_csv(r"C:\Users\mithr\Downloads\dataset.csv")
+df1 = pd.read_csv(".\dataset.csv")
 
 sym_cols = ["Symptom_1", "Symptom_2", "Symptom_3", "Symptom_4"]
 
@@ -45,18 +45,19 @@ symptoms = df1["symptoms"].tolist()
 diseases = df1["Disease"].fillna("").astype(str).tolist()
 
 #two
-df2 = pd.read_csv(r"C:\Mithra\WNCC\health-assistant\app\Diseases_Symptoms.csv")
-symptoms.extend(df2["Symptoms"].fillna("").astype(str))
-diseases.extend(df2["Name"].fillna("").astype(str))
+df2 = pd.read_csv(".\Diseases_Symptoms.csv")
+symptoms.extend(df2["Symptoms"].fillna("").astype(str).tolist())
+diseases.extend(df2["Name"].fillna("").astype(str).tolist())
 
-df3 = pd.read_csv(r"C:\Mithra\WNCC\health-assistant\app\Disease_symptom_and_patient_profile_dataset.csv")
+df3 = pd.read_csv(".\Disease_symptom_and_patient_profile_dataset.csv")
 for idx, row in df3.iterrows():
     if row["Outcome Variable"] == "Positive":
-        diseases.extend(df3["Disease"].fillna("").astype(str))
-        s = []
+        diseases.append(row["Disease"])
+        p = []
         for i in "Fever,Cough,Fatigue,Difficulty Breathing,Age,Gender,Blood Pressure,Cholesterol Level".split(","):
-            s.append(i)
-        symptoms.extend(s)
+            if row[i] == "Yes":
+                p.append(i)
+        symptoms.append(", ".join(p))
 
 
 # In[148]:
@@ -456,17 +457,6 @@ def timeSince(since, percent):
     return '%s (- %s)' % (asMinutes(s), asMinutes(rs))
 
 
-# In[70]:
-
-
-class DiseaseClassifier(nn.Module):
-    def __init__(self, hidden_size, vocab_size):
-        super().__init__()
-        self.fc = nn.Linear(hidden_size, vocab_size)
-    def forward(self, enc_hidden):
-        logits = self.fc(enc_hidden[-1])        # [B, vocab]
-        return F.log_softmax(logits, dim=-1)
-
 
 # In[71]:
 
@@ -506,7 +496,7 @@ def train(train_dataloader, encoder, decoder, n_epochs, learning_rate=0.001,
 # In[72]:
 
 
-# 14. Plotting Results
+# 14. Plotting Results - Not in use
 import matplotlib.pyplot as plt
 plt.switch_backend('agg')
 import matplotlib.ticker as ticker
